@@ -11,6 +11,10 @@ This repository contains the scripts used in the article "Mapping urban linguist
   * Apply from [here](https://www.stat.fi/tup/mikroaineistot/index_en.html)
 * Dynamic population data from Helsinki Metropolitan Area by Bergroth et al. (2022) from [here](https://zenodo.org/record/4726996#.Yfk1e9-xWF4)
 
+### Pre-analysis steps
+
+* The language detection of the social media was done with fastText using scripts from [Hiippala et al. (2020)](https://github.com/DigitalGeographyLab/maphel-finlang)
+
 ### Suggested running order of scripts
 
 | Step | File | Description | Input | Output |
