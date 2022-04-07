@@ -39,8 +39,8 @@ def count_dom(langlist):
     
     return lang_code, prop, uniques, langs
 
-# read social media data in
-origdf = gpd.read_file('/home/tuomvais/GIS/maphel_thirdplace/maphel_thirdplace/some_combined/combined/twinsta_2015_langid.gpkg')
+# read combined social media data in
+origdf = gpd.read_file('twinsta_2015_langid.gpkg')
 
 # all users
 allusers = origdf.groupby(by=['userid'])['language'].apply(list)

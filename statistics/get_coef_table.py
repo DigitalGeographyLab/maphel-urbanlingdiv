@@ -3,6 +3,8 @@
 """
 Created on Tue Feb  1 15:54:08 2022
 
+This script loads the pickled OLS models to create table of coefficients and p-values.
+
 @author: waeiski
 """
 
@@ -16,7 +18,7 @@ path = '/home/waeiski/GIS/maphel_thirdplace/ols/*.pkl'
 
 mdls = glob.glob(path)
 
-# empty dataframe for coefficients
+# empty list for coefficient dataframes
 mtab = []
 
 # loop over models
@@ -47,34 +49,14 @@ for model in mdls:
     # combine
     comb = coef.merge(pval, on='index').set_index('index')
     
-    # add to datafrmae
+    # add to dataframe list
     mtab.append(comb)
     
-# construct dataframes
+# concatenate to construct one dataframe
 result = pd.concat(mtab, axis=1)
 
 # reorder columns
 result = result[['morning', 'mo_pval', 'noon', 'no_pval', 'afternoon', 'af_pval', 'evening', 'ev_pval', 'night', 'ni_pval', 'fulldata', 'fu_pval']]
 
-# print result in latex format
+# print result in latex format for easier integration into latex
 print(result.style.to_latex())
-
-# read models
-mo = sm.load(mdls[1])
-no = sm.load(mdls[3])
-af = sm.load(mdls[0])
-ev = sm.load(mdls[4])
-ni = sm.load(mdls[2])
-fu = sm.load(mdls[5])
-
-print(mo.summary().as_latex())
-
-print(no.summary().as_latex())
-
-print(af.summary().as_latex())
-
-print(ev.summary().as_latex())
-
-print(ni.summary().as_latex())
-
-print(fu.summary().as_latex())

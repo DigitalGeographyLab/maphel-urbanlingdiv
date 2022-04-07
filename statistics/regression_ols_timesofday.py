@@ -147,8 +147,8 @@ def vif_filter(dataframe, cols, initial_list=[], threshold=5):
     # return trimmed list
     return included, vif
 
-# read in rtk data
-rtk = gpd.read_file('/home/waeiski/GIS/maphel_thirdplace/RTK_data_7.gpkg', driver='GPKG') #RTK7 dynpop ja reg diversity mukana!
+# read in grid database (rtk) data
+rtk = gpd.read_file('/RTK_data.gpkg', driver='GPKG')
 rtk = rtk.set_crs('epsg:3067', allow_override=True)
 
 # combine job data
@@ -159,7 +159,7 @@ rtk['reg_shan_scaled'] = rtk['reg_shannon'] / rtk['reg_shannon'].max()
 rtk['total_jobs_scaled'] = rtk['total_jobs'] / rtk['total_jobs'].max()
 
 # read in full twinsta data
-twinsta = gpd.read_file('/home/waeiski/GIS/maphel_thirdplace/maphel_thirdplace/twinsta_diversities_2015_no_timeofday.gpkg', driver='GPKG')
+twinsta = gpd.read_file('/twinsta_diversities_2015_no_timeofday.gpkg', driver='GPKG')
 
 # join full data with rtk data
 df = twinsta.sjoin(rtk, how='inner', predicate='within')
@@ -179,7 +179,7 @@ random.shuffle(vcols)
 
 # run vif filter
 vif_vars, vif_df = vif_filter(df, vcols, threshold=5)
-vif_df.to_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/initial_fulldata_vif.pkl')
+vif_df.to_pickle('/ols/vif/initial_fulldata_vif.pkl')
 
 # randomize variable order to ensure order is not affecting the analysis
 random.shuffle(vif_vars)
@@ -189,7 +189,7 @@ reg_vars = backward_regression(df[vif_vars], y, threshold_out=0.1)
 
 # get final vif scores
 vif_list, vifs = vif_filter(df, reg_vars, threshold=5)
-vifs.to_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/final_fulldata_vif.pkl')
+vifs.to_pickle('/ols/vif/final_fulldata_vif.pkl')
 
 # add constants to statsmodel
 X_var = sm.add_constant(df[reg_vars[:]])
@@ -203,16 +203,16 @@ m = sns.scatterplot(x=model.fittedvalues, y=model.resid, legend=True)
 m.set_title('OLS residuals')
 m.set_xlabel('Fitted value')
 m.set_ylabel('Residual')
-plt.savefig('/home/waeiski/GIS/maphel_thirdplace/ols/plots/fulldata_residuals.png')
+plt.savefig('ols/plots/fulldata_residuals.png')
 
 # print summary
 model.summary()
 
 # save model
-model.save('/home/waeiski/GIS/maphel_thirdplace/ols/ols_fulldata.pkl')
+model.save('/ols/ols_fulldata.pkl')
 
 # save dataframe
-df.to_file('/home/waeiski/GIS/maphel_thirdplace/ols/geopackages/full_data.gpkg', driver='GPKG')
+df.to_file('/ols/geopackages/full_data.gpkg', driver='GPKG')
 
 
 # print latex formatted summary
@@ -224,7 +224,7 @@ print(model.summary().as_latex())
 # Here's the time of day version
 
 # path to times of day data
-path = '/home/waeiski/GIS/maphel_thirdplace/maphel_thirdplace/combined_some/autocorr/'
+path = '/autocorr/'
 
 # get list of times-of-day data
 timesofday = glob.glob(path + '/knn8*.gpkg')
@@ -244,8 +244,8 @@ for file in timesofday:
     
     # spatial join with socioeco data
     timedf = timedf.sjoin(rtk, how='inner', predicate='within')
-    timedf.to_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/dataframes/{}_df.pkl'.format(timed))
-    timedf.to_file('/home/waeiski/GIS/maphel_thirdplace/ols/geopackages/{}_df.gpkg'.format(timed), driver='GPKG')
+    timedf.to_pickle('/ols/dataframes/{}_df.pkl'.format(timed))
+    timedf.to_file('/ols/geopackages/{}_df.gpkg'.format(timed), driver='GPKG')
     
     # get dependent variable
     y = timedf['shannon_scaled']
@@ -264,7 +264,7 @@ for file in timesofday:
     
     # run vif filter
     vif_vars, vifdf = vif_filter(timedf, dynvars, threshold=5)
-    vifdf.to_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/initial_{}_vif.pkl'.format(timed))
+    vifdf.to_pickle('/ols/vif/initial_{}_vif.pkl'.format(timed))
     
     # randomize vif variable order
     random.shuffle(vif_vars)
@@ -274,7 +274,7 @@ for file in timesofday:
     
     # get final vif scores and save to df
     viflist, vifs = vif_filter(timedf, reg_vars, threshold=5)
-    vifs.to_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/final_{}_vif.pkl'.format(timed))
+    vifs.to_pickle('/ols/vif/final_{}_vif.pkl'.format(timed))
     
     # add constant to model
     X_var = sm.add_constant(timedf[reg_vars])
@@ -288,71 +288,14 @@ for file in timesofday:
     m.set_title('OLS residuals during {}'.format(timed))
     m.set_xlabel('Fitted value')
     m.set_ylabel('Residual')
-    plt.savefig('/home/waeiski/GIS/maphel_thirdplace/ols/plots/{}_residuals.png'.format(timed))
+    plt.savefig('/ols/plots/{}_residuals.png'.format(timed))
     
     # print summary
     print('\n[INFO] - For ' + timed + ' the R squared: ' + str(dynmodel.rsquared) + '\n')
     dynmodel.summary()
     
     # save model
-    dynmodel.save('/home/waeiski/GIS/maphel_thirdplace/ols/ols_{}.pkl'.format(timed))
+    dynmodel.save('/ols/ols_{}.pkl'.format(timed))
     
     # print summary with latex formatting
     print(dynmodel.summary().as_latex())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# these vars are tested on 25.01
-vcols =['he_kika', 'he_vakiy', 'total_jobs', 'low_income_prop',
-        'unemployed_prop', 'students_prop', 'basic_ed_prop',
-        'high_school_prop', 'vocational_ed_prop', 'bachelor_ed_prop',
-        'masters_ed_prop', 'mean_livingspace', 'res_buildings_prop',
-        'block_dwel_prop', 'rent_household_prop', 'edsci_jobs',
-        'retail_ent_jobs', 'intorg_jobs', 'horeca_jobs',
-        'health_jobs', 'infocom_jobs', 'usercount', 'postcount']
-
-# correlation matrix columns
-corcols = ['shannon_scaled','he_kika', 'he_vakiy', 'total_jobs', 'low_income_prop',
-        'unemployed_prop', 'students_prop', 'basic_ed_prop',
-        'high_school_prop', 'vocational_ed_prop', 'bachelor_ed_prop',
-        'masters_ed_prop', 'mean_livingspace', 'res_buildings_prop',
-        'block_dwel_prop', 'rent_household_prop', 'education_jobs',
-        'entertainment_jobs', 'intorg_jobs', 'science_jobs', 'horeca_jobs',
-        'retail_jobs', 'health_jobs', 'infocom_jobs', 'usercount', 'postcount']
-
-# test for correlation between shannon and variables
-cortest = corr_vars(df, 'shannon_scaled', corcols)
-
-# correlation matrix
-matrix = df[corcols].corr().round(2)
-
-# triangle matrix mask
-mask = np.triu(np.zeros_like(matrix, dtype=bool))
-
-# plot correlation matrix
-plt.figure(figsize=(13,15))
-sns.heatmap(matrix, annot=True, vmax=1, vmin=-1, center=0,
-            cmap='RdYlBu', mask=mask, square=True)

@@ -19,3 +19,7 @@ This repository contains the scripts used in the article "Mapping urban linguist
 | 1 | [press_button.py](press_button.py) | Presses magic button | Cup ready for coffee | Cup full of coffee |
 | 2 | [pick_cup.py](pick_cup.py) | Picks up cup full of coffee | Cup full of coffee | Coffee cup ready for drinking |
 | 3 | [assess_flavor.r](assess_flavor.r) | Fits a linear model over flavor characteristics | Coffee cup ready for drinking | Happy researcher |
+
+### Note on analysis
+
+The SLM analysis was conducted in [GeoDA](https://geodacenter.github.io/) with 1st order Queen contiguity neighborhoods.

@@ -3,6 +3,8 @@
 """
 Created on Tue Apr 13 12:10:25 2021
 
+This script calculates grid cell diversities for the whole social media data without separating times of day.
+
 @author: waeiski
 """
 import geopandas as gpd
@@ -32,7 +34,7 @@ def scale_minmax(series):
     return scaled
 
 # read grid in
-grid = gpd.read_file('/home/local/tuomvais/GIS/maphel_thirdplace/2015_diversities.gpkg')
+grid = gpd.read_file('/2015_diversities.gpkg')
 
 # reduce column clutter
 grid = grid[['NRO', 'KUNTA', 'KUNTANRO', 'geometry']]
@@ -43,8 +45,8 @@ grid['NRO'] = grid['NRO'].astype(int)
 # get contiguity
 gW = libpysal.weights.Queen.from_dataframe(grid, idVariable='NRO')
 
-# filelists
-file = '/home/tuomvais/GIS/maphel_thirdplace/maphel_thirdplace/some_combined/combined/twinsta_2015_langid.gpkg'
+# file for combined full social media data
+file = '/twinsta_2015_langid.gpkg'
 
 # read timeofday df in
 df = gpd.read_file(file)
@@ -109,7 +111,7 @@ langrid = langrid.dropna(subset=['sents'])
 # drop list column
 langrid = langrid.drop(columns=['langs'])
 # save to file
-langrid.to_file('/home/tuomvais/GIS/maphel_thirdplace/twinsta_diversities_2015_no_timeofday.gpkg',driver='GPKG')
+langrid.to_file('/results/twinsta_diversities_2015_no_timeofday.gpkg',driver='GPKG')
 
 # print done
 print('[INFO] - ... done!')

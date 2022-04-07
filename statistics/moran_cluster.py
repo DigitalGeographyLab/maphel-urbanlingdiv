@@ -3,6 +3,8 @@
 """
 Created on Wed Apr 21 12:16:36 2021
 
+This script runs the local bivariate Moran's I analysis with Shannon entropy and Simpson diversity.
+
 @author: waeiski
 """
 from pysal.lib import weights
@@ -37,7 +39,7 @@ divs = ['shannon', 'shannon_scaled', 'margalef', 'unique', 'simpson']
 files = []
 
 # populate list with geopackage file paths
-for gpkg in glob.glob('/home/tuomvais/GIS/maphel_thirdplace/combined_some/*.gpkg'):
+for gpkg in glob.glob('/path/to/combined_some/*.gpkg'):
     files.append(gpkg)
 
 # loop over the files
@@ -135,4 +137,4 @@ for file in files:
     grid[outBVcol] = spots
     
     # save to file
-    grid.to_file('/home/tuomvais/GIS/maphel_thirdplace/combined_some/autocorr/knn8_cl_' + fn, driver='GPKG')
+    grid.to_file('autocorr/knn8_cl_' + fn, driver='GPKG')

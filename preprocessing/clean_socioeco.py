@@ -3,7 +3,10 @@
 """
 Created on Fri Jun 18 10:37:21 2021
 
-This script cleans up the socio-economic data for OLS and SLM analysis
+This script cleans up the socio-economic data for OLS and SLM analysis.
+
+The grid database RTK contains obfuscated entries for cells that have less than 10 people and
+the obfuscated value is -1, which are replaced by None in this script.
 
 @author: Tuomas Väisänen
 """
@@ -14,34 +17,17 @@ from sklearn.linear_model import LinearRegression
 
 
 # read socio-economic data in
-df = gpd.read_file('/home/waeiski/GIS/maphel_thirdplace/rtk2016_250_hma.gpkg')
+df = gpd.read_file('rtk2015_250_hma.gpkg')
 
 # calculate kids and pensioners
 df['kids_u18'] = df['he_0_2'] + df['he_3_6'] + df['he_7_12'] + df['he_13_15'] + df['he_16_17']
 df['pensioners'] = df['he_65_69'] + df['he_70_74'] + df['he_75_79'] + df['he_80_84'] + df['he_85_']
 
-##########################################################
-
-# linear regression model for income level
-incomedf = df[df['hr_ktu'] > 0]
-model = LinearRegression()
-model.fit(incomedf['he_vakiy'].values.reshape(-1,1), incomedf['hr_ktu'].values.reshape(-1,1))
-
-model.fit(incomedf[['he_vakiy', 'tr_ktu', ]], incomedf[['hr_ktu']])
-
-# get mean income level
-mincome = df['hr_ktu'].values.tolist()
-mincome = [i for i in mincome if i > 0]
-mincome = statistics.mean(mincome)
-
-##########################################################
-
-# proportion of apartments vs other buildings
-
 
 # replace na values with mean income
 for i, row in df.iterrows():
     if row['hr_ktu'] == -1:
+        # remove obfuscation
         df.at[i, 'mean_income'] = None
     else:
         df.at[i, 'mean_income'] = row['hr_ktu']
@@ -49,7 +35,7 @@ for i, row in df.iterrows():
 # clean up income group data
 for i, row in df.iterrows():
     if row['hr_pi_tul'] == -1:
-        # originally divided by three, but changed to none
+        # remove obfuscation
         df.at[i, 'low_income'] = None
         df.at[i, 'med_income'] = None
         df.at[i, 'hi_income'] = None
@@ -63,10 +49,10 @@ df['low_income_prop'] = df['low_income'] / df['hr_tuy']
 df['med_income_prop'] = df['med_income'] / df['hr_tuy']
 df['hi_income_prop'] = df['hi_income'] / df['hr_tuy']
 
-# calculate job stats
+# calculate employment stats
 for i, row in df.iterrows():
     if ((row['pt_tyovy'] <= 9) and (row['pt_tyovy'] > 0)):
-        # originally divided by two, but changed to none
+        # remove obfuscation
         df.at[i, 'employed'] = None
         df.at[i, 'unemployed'] = None
     else:
@@ -83,6 +69,7 @@ df['not_in_workforce'] = df['pt_tyovu']
 # calculate students
 for i, row in df.iterrows():
     if ((row['pt_tyovu'] <= 9) and (row['pt_tyovu'] > 0)):
+        # remove obfuscation
         df.at[i, 'students'] = None
     else:
         df.at[i, 'students'] = row['pt_opisk']
@@ -93,6 +80,7 @@ df['students_prop'] = df['students'] / df['pt_vakiy']
 # clean up education level data
 for i, row in df.iterrows():
     if ((row['ko_ika18y'] <= 9) and (row['ko_ika18y'] > 0)):
+        # remove obfuscation
         df.at[i, 'basic_ed'] = None
         df.at[i, 'high_school'] = None
         df.at[i, 'vocational_ed'] = None
@@ -114,7 +102,7 @@ df['masters_ed_prop'] = df['masters_ed'] / df['ko_ika18y']
 df['med_ed_prop'] = (df['high_school'] + df['vocational_ed']) / df['ko_ika18y']
 df['high_ed_prop'] = (df['bachelor_ed'] + df['masters_ed']) / df['ko_ika18y']
 
-# clarify job data
+# clarify job structure data
 df['total_jobs'] = df['tp_tyopy']
 df['education_jobs'] = df['tp_p_koul'] / df['tp_tyopy']
 df['entertainment_jobs'] = df['tp_r_taid'] / df['tp_tyopy']
@@ -130,6 +118,7 @@ df['retail_ent_jobs'] = (df['tp_g_kaup'] + df['tp_r_taid']) / df['tp_tyopy']
 # clean up living space data
 for i, row in df.iterrows():
     if row['te_as_valj'] == -1:
+        # remove obfuscation
         df.at[i, 'mean_livingspace'] = None
     else:
         df.at[i, 'mean_livingspace'] = row['te_as_valj']
@@ -137,6 +126,7 @@ for i, row in df.iterrows():
 # clean up mean square meters per apartment
 for i, row in df.iterrows():
     if row['ra_as_kpa'] == -1:
+        # remove obfuscation
         df.at[i, 'avg_sq_m'] = None
     else:
         df.at[i, 'avg_sq_m'] = row['ra_as_kpa']
@@ -144,11 +134,13 @@ for i, row in df.iterrows():
 # clean owner/renter counts
 for i, row in df.iterrows():
     if row['te_omis_as'] == -1:
+        # remove obfuscation
         df.at[i, 'owners'] = None
     else:
         df.at[i, 'owners'] = row['te_omis_as']
 for i, row in df.iterrows():
     if row['te_vuok_as'] == -1:
+        # remove obfuscation
         df.at[i, 'renters'] = None
     else:
         df.at[i, 'renters'] = row['te_vuok_as']
@@ -185,7 +177,7 @@ df = df[['KUNTA', 'euref_x', 'euref_y', 'id_nro', 'vuosi', 'he_vakiy', 'he_naise
          'block_dwel_prop', 'owner_household_prop', 'rent_household_prop', 'geometry']]
 
 # read in twinsta points
-points = gpd.read_file('/home/waeiski/GIS/maphel_thirdplace/maphel_thirdplace/maphel_thirdplace/some_combined/combined/twinsta_2015_langid.gpkg')
+points = gpd.read_file('twinsta_2015_langid.gpkg')
 
 # spatial join
 joined = gpd.sjoin(df, points)
@@ -195,8 +187,8 @@ counts = joined.groupby(['id_nro'])['userid', 'id'].nunique().reset_index().rena
 platforms = joined.groupby(['id_nro','platform'])['platform'].count().rename('count').reset_index()
 platforms = platforms.pivot(index='id_nro', columns=['platform'], values='count').reset_index()
 
-# join counts to df
+# join counts to socio-economic df
 df = df.merge(counts, on='id_nro')
 
 # save to geopackage
-df.to_file('/home/waeiski/GIS/maphel_thirdplace/RTK_data_5.gpkg', driver='GPKG')
+df.to_file('RTK_data_5.gpkg', driver='GPKG')

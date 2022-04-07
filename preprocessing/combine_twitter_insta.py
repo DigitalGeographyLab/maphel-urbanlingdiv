@@ -3,22 +3,24 @@
 """
 Created on Fri Apr 23 14:16:42 2021
 
+This script combines Twitter and Instagram data from 2015
+
 @author: waeiski
 """
 import geopandas as gpd
 
 # read social media data in
-twitter = gpd.read_file('/home/waeiski/GIS/maphel_thirdplace/some_combined/twitter2015_langid.gpkg')
-instagram = gpd.read_file('/home/waeiski/GIS/maphel_thirdplace/some_combined/insta2015_langid_tm35fin.gpkg')
+twitter = gpd.read_file('/twitter2015_langid.gpkg')
+instagram = gpd.read_file('insta2015_langid_tm35fin.gpkg')
 
-# insta locations to drop
+# generic insta locations to drop to reduce post accumulation to single geographical point
 ilocs = ['Helsinki, Finland', 'Espoo, Finland', 'Vantaa, Finland' ,'Helsinki',
          'Finland', 'Helsinki - Finland']
 
-# drop locations
+# drop the aforementioned locations
 instagram = instagram[~instagram['location_name'].isin(ilocs)]
 
-# simplify
+# simplify data structures
 twitter = twitter[['id', 'userid', 'time_local', 'hour', 'weekday', 'sents', 'language', 'prob', 'charlen', 'geometry']]
 instagram = instagram[['id', 'userid', 'time_local', 'hour', 'weekday', 'sents', 'language', 'prob', 'charlen', 'geometry']]
 
@@ -29,17 +31,17 @@ twitter = twitter.rename(columns={'userid':'userid'})
 twitter['platform'] = 'twitter'
 instagram['platform'] = 'instagram'
 
-# append
+# join twitter and instagram data
 joined = twitter.append(instagram, ignore_index=True)
 
-# get coords
+# get coordinates
 joined['x_coord'] = joined['geometry'].x
 joined['y_coord'] = joined['geometry'].y
 
 # drop duplicate cross-posts at identical locations
 joined = joined.drop_duplicates(subset=['sents','x_coord','y_coord'])
 
-# get times of day
+# separate data by times of day
 morning = joined[joined['hour'].isin([6,7,8,9])]
 noon = joined[joined['hour'].isin([10,11,12,13])]
 afternoon = joined[joined['hour'].isin([14,15,16,17])]
