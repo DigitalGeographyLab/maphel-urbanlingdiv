@@ -1,10 +1,9 @@
-# maphel-urbanlingdiv
-This repository contains the scripts used in the article "Mapping urban linguistic diversity with social media and population register data" submitted to Computers, Environment and Urban Systems.
+This repository contains the scripts used in the article "Mapping urban linguistic diversity with social media and population register data" published in CEUS (hopefully).
 
 ### Data requirements
 
 * Twitter and Instagram data from the Helsinki Metropolitan Area from the year 2015.
-  * Instagram data is legacy data we had collected in 2016 before the API was closed down. The Twitter data can be collected with [tweetsearcher](https://github.com/DigitalGeographyLab/tweetsearcher).
+  * Instagram data is legacy data we had collected in 2016 before the API was closed down. The Twitter data can be collected with [tweetsearcher](https://doi.org/10.5281/zenodo.4767170).
 * Statistics Finland 250 m grid database from year 2015
   * Apply from [here](https://www.stat.fi/tup/ruututietokanta/index_en.html)
 * Individual-level first language information aggregated into 250 m grid from 2015
