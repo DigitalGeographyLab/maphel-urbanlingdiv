@@ -11,14 +11,22 @@ import statsmodels.api as sm
 import pandas as pd
 import geopandas as gpd
 import glob
+import argparse
 
-# path to models
-path = '/home/waeiski/GIS/maphel_thirdplace/ols/*.pkl'
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to input folder
+ap.add_argument("-if", "--inputfolder", required=True,
+                help="Path to folder containing pickled model files.")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # list all pickled models
-mdls = glob.glob(path)
+mdls = glob.glob(args['inputfolder'] + '*.pkl')
 
-# read models
+# read models, the order might be different for you
 mo = sm.load(mdls[1])
 no = sm.load(mdls[3])
 af = sm.load(mdls[0])

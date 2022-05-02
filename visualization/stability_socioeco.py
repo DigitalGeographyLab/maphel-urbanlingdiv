@@ -11,13 +11,38 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import glob
 import numpy as np
+import argparse
+
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to register input file
+ap.add_argument("-r", "--register", required=True,
+                help="Path to input register file (type geopackage).")
+
+# Get path to grid database input file
+ap.add_argument("-sh", "--stabhigh", required=True,
+                help="Path to folder containing extracted high diversity cluster"
+                " locations (type pickled geopackag)")
+
+# Get path to grid database input file
+ap.add_argument("-sl", "--stablow", required=True,
+                help="Path to folder containing extracted low diversity cluster"
+                " locations (type pickled geopackag)")
+
+# Get path to output file
+ap.add_argument("-o", "--output", required=True,
+                help="Path to output graph. (type PDF file)")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # read in rtk data
-rtk = gpd.read_file('RTK_data.gpkg')
+rtk = gpd.read_file(args['register'])
 
 # read in stability data of low and high diversity clusters
-histab = gpd.read_file('stability_high.gpgk', driver='GPKG')
-lowstab = gpd.read_file('stability_low.gpgk', driver='GPKG')
+histab = gpd.read_file(args['stabhigh'], driver='GPKG')
+lowstab = gpd.read_file(args['stablow'], driver='GPKG')
 
 # classify stabilities for low stability data
 lowstab['stabclass'] = lowstab['stability'].apply(lambda x: 'High' if x >= 4 else ('Moderate' if x == 3 else 'Low'))
@@ -56,26 +81,26 @@ colors = sns.color_palette(['#4dac26', '#d8a600', '#1b21d0'])
 
 # loop over attributes to plot
 for i, attr in enumerate(attrs):
-    
+
     # create figure
     plt.figure(figsize=(8,14))
-    
+
     # plot categorical plot
     g = sns.catplot(x='stabclass', y=attr, hue='stabclass', kind='boxen',
                     dodge=False, col='divclass', palette=colors,
                     order=['High', 'Moderate', 'Low'],
                     hue_order=['High', 'Moderate', 'Low'], data=joined)
-    
+
     # final details
     (g.set_axis_labels("", "")
      .set_xticklabels(['High', 'Moderate', 'Low'])
      .set_titles("{col_name}").despine(left=True))
-    
+
     # get flexible text location value
     tloc = - joined[attr].max() / 5.2
-    
+
     # add text
     plt.text(-4.2, tloc, "Temporal\nstability:", fontsize=12)
-        
+
     # save plot
-    plt.savefig('plots/div_stab_' + attr + '_boxen.pdf' , dpi=300, bbox_inches='tight')
+    plt.savefig(args['output'] , dpi=300, bbox_inches='tight')

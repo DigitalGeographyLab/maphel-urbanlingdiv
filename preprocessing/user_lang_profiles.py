@@ -3,29 +3,43 @@
 """
 Created on Wed Oct 20 11:32:51 2021
 
+This script prints out social media content characteristics.
+
 @author: tuomvais
 """
 
 import geopandas as gpd
 from collections import Counter
 import pandas as pd
+import argparse
+
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to input file
+ap.add_argument("-i", "--input", required=True,
+                help="Path to file containing Twitter and Instagram point features"
+                " (type pickled dataframe)")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # function to count dominant language of user
 def count_dom(langlist):
-    
+
     # get count of languages used
     total_use = len(langlist)
-    
+
     # count unique languages
     uniques = len(set(langlist))
-    
+
     # convert list to counted dictionary
     counts = Counter(langlist)
-    
+
     # get most common language count
     lang_count = counts.most_common()[0][1]
     lang_code = counts.most_common()[0][0]
-    
+
     # is multilingual
     if uniques == 1:
         langs = 'Monolingual'
@@ -33,14 +47,14 @@ def count_dom(langlist):
         langs = 'Bilingual'
     elif uniques > 2:
         langs = 'Multilingual'
-    
+
     # count proportion
     prop = round((lang_count / total_use), 4)
-    
+
     return lang_code, prop, uniques, langs
 
 # read combined social media data in
-origdf = gpd.read_file('twinsta_2015_langid.gpkg')
+origdf = gpd.read_file(args['input'])
 
 # all users
 allusers = origdf.groupby(by=['userid'])['language'].apply(list)

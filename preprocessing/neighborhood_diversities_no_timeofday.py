@@ -14,6 +14,26 @@ import libpysal
 import skbio.diversity.alpha as sk
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+import argparse
+
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to register input file
+ap.add_argument("-r", "--register", required=True,
+                help="Path to input register file (type geopackage).")
+
+# Get path to grid database input file
+ap.add_argument("-i", "--input", required=True,
+                help="Path to combined Twitter and Instagram point feature file"
+                " (type geopackage).")
+
+# Get path to output file
+ap.add_argument("-o", "--output", required=True,
+                help="Path to output file (type geopackage).")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # function to scale values
 def scale_minmax(series):
@@ -34,7 +54,7 @@ def scale_minmax(series):
     return scaled
 
 # read grid in
-grid = gpd.read_file('/2015_diversities.gpkg')
+grid = gpd.read_file(args['register'])
 
 # reduce column clutter
 grid = grid[['NRO', 'KUNTA', 'KUNTANRO', 'geometry']]
@@ -45,11 +65,8 @@ grid['NRO'] = grid['NRO'].astype(int)
 # get contiguity
 gW = libpysal.weights.Queen.from_dataframe(grid, idVariable='NRO')
 
-# file for combined full social media data
-file = '/twinsta_2015_langid.gpkg'
-
 # read timeofday df in
-df = gpd.read_file(file)
+df = gpd.read_file(args['input'])
 
 # join with grid
 df = gpd.sjoin(df, grid, op='intersects')
@@ -73,11 +90,12 @@ for gid in idlist:
                      ndf['language'].value_counts().values))
     # add language use to language dictionary
     langdict[gid] = langs
-    
+
 # generate a language use dataframe
 langdf = pd.DataFrame(langdict.items(), columns=['grid_id', 'langs'])
 
 # loop over language dataframe
+print('[INFO] - Calculating diversity indices..')
 for i, row in langdf.iterrows():
     # get language counts from tuples
     counts = [x[1] for x in row['langs']]
@@ -100,7 +118,7 @@ for i, row in langdf.iterrows():
     langdf.at[i, 'gini'] = sk.gini_index(counts)
     langdf.at[i, 'enspie'] = sk.enspie(counts)
     langdf.at[i, 'simpson'] = sk.simpson(counts)
-        
+
 # scale shannon
 langdf['shannon_scaled'] = scale_minmax(langdf['shannon'])
 
@@ -111,7 +129,8 @@ langrid = langrid.dropna(subset=['sents'])
 # drop list column
 langrid = langrid.drop(columns=['langs'])
 # save to file
-langrid.to_file('/results/twinsta_diversities_2015_no_timeofday.gpkg',driver='GPKG')
+print('[INFO] - Saving results...')
+langrid.to_file(args['output'], driver='GPKG')
 
 # print done
 print('[INFO] - ... done!')

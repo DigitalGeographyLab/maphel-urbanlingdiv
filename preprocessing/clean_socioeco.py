@@ -14,10 +14,24 @@ the obfuscated value is -1, which are replaced by None in this script.
 import statistics
 import geopandas as gpd
 from sklearn.linear_model import LinearRegression
+import argparse
 
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to input file
+ap.add_argument("-i", "--input", required=True,
+                help="Path to input RTK database file (type geopackage).")
+
+# Get path to output file
+ap.add_argument("-o", "--output", required=True,
+                help="Path to output file (type geopackage).")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # read socio-economic data in
-df = gpd.read_file('rtk2015_250_hma.gpkg')
+df = gpd.read_file(args['input'])
 
 # calculate kids and pensioners
 df['kids_u18'] = df['he_0_2'] + df['he_3_6'] + df['he_7_12'] + df['he_13_15'] + df['he_16_17']
@@ -73,7 +87,7 @@ for i, row in df.iterrows():
         df.at[i, 'students'] = None
     else:
         df.at[i, 'students'] = row['pt_opisk']
-        
+
 # calculate proportional students
 df['students_prop'] = df['students'] / df['pt_vakiy']
 
@@ -122,7 +136,7 @@ for i, row in df.iterrows():
         df.at[i, 'mean_livingspace'] = None
     else:
         df.at[i, 'mean_livingspace'] = row['te_as_valj']
-        
+
 # clean up mean square meters per apartment
 for i, row in df.iterrows():
     if row['ra_as_kpa'] == -1:
@@ -130,7 +144,7 @@ for i, row in df.iterrows():
         df.at[i, 'avg_sq_m'] = None
     else:
         df.at[i, 'avg_sq_m'] = row['ra_as_kpa']
-        
+
 # clean owner/renter counts
 for i, row in df.iterrows():
     if row['te_omis_as'] == -1:
@@ -144,7 +158,7 @@ for i, row in df.iterrows():
         df.at[i, 'renters'] = None
     else:
         df.at[i, 'renters'] = row['te_vuok_as']
-        
+
 # count owner/renter proportions
 df['owner_household_prop'] = df['owners'] / df['te_taly']
 df['rent_household_prop'] = df['renters'] / df['te_taly']
@@ -191,4 +205,4 @@ platforms = platforms.pivot(index='id_nro', columns=['platform'], values='count'
 df = df.merge(counts, on='id_nro')
 
 # save to geopackage
-df.to_file('RTK_data_5.gpkg', driver='GPKG')
+df.to_file(args['output'], driver='GPKG')

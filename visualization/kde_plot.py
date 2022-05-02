@@ -3,6 +3,8 @@
 """
 Created on Wed Jun  9 13:19:59 2021
 
+This script plots KDE plot of data with cluster information from moran_cluster.py
+
 @author: tuomvais
 """
 
@@ -13,12 +15,28 @@ import pandas as pd
 import glob
 import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
+import argparse
+
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to input folder
+ap.add_argument("-if", "--inputfolder", required=True,
+                help="Path to folder containing files with diversity values with"
+                " cluster information.")
+
+# Get path to input folder
+ap.add_argument("-o", "--output", required=True,
+                help="Path to output graphics file.")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # create empty list for file paths
 files = []
 
 # populate list with geopackage file paths
-for gpkg in glob.glob('/home/tuomvais/GIS/maphel_thirdplace/combined_some/autocorr/knn8*.gpkg'):
+for gpkg in glob.glob(args['inputfolder'] + 'knn8*.gpkg'):
     files.append(gpkg)
 
 # renaming dictionary
@@ -36,21 +54,21 @@ some = []
 # empty dataframe for registry data
 reg = gpd.GeoDataFrame()
 
-# loop over files 
+# loop over files
 for i, file in enumerate(files):
-    
+
     # read in
     df = gpd.read_file(file)
-    
+
     # add column containing times of day
     df['tod'] = titles[i]
-    
+
     # check where to push df
     if titles[i] == 'Registry':
         # persist registry data
         reg = df
     elif titles[i] != 'Registry':
-        # append to social media list 
+        # append to social media list
         some.append(df)
 
 # concatenate social media data into one datafrmae
@@ -90,4 +108,4 @@ axes[1].set_title('b. Simpson diversity')
 axes[1].set_xlabel('')
 
 # save the plotted figure as pdf
-plt.savefig('/home/tuomvais/GIS/maphel_thirdplace/plots/kde_diversities_timeofday_2.pdf', dpi=300, bbox_inches='tight')
+plt.savefig(args['output'], dpi=300, bbox_inches='tight')

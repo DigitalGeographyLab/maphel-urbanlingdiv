@@ -10,9 +10,29 @@ This script reads data with identified clusters and extracts the high and low cl
 import glob
 import geopandas as gpd
 import pandas as pd
+import argparse
+
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to input file
+ap.add_argument("-i", "--input", required=True,
+                help="Path to input RTK database file (type geopackage).")
+
+# Get path to input file
+ap.add_argument("-if", "--inputfolder", required=True,
+                help="Path to folder with geopackagee files containing cluster"
+                " information. Example: /path/to/folder/ ")
+
+# Get path to output file
+ap.add_argument("-of", "--outputfolder", required=True,
+                help="Path to output folder Example: /path/to/outputfolder/.")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # read socioeconomic grid database data in
-df = gpd.read_file('RTK_data.gpkg')
+df = gpd.read_file(args['input'])
 
 # empty list for high and low clusters
 highs = []
@@ -22,51 +42,47 @@ lows = []
 files = []
 
 # populate list with geopackage file paths to files with bivariate local morans i results
-for gpkg in glob.glob('file/path/to/*.gpkg'):
-    if 'comb2015' in gpkg:
-        files.append(gpkg)
-    else:
-        pass
+for gpkg in glob.glob(args['inputfolder'] + '*.gpkg'):
+    files.append(gpkg)
 
 # loop over files
 for file in files:
-    
+
     # read file
     mdf = gpd.read_file(file)
-    
+
     # get file name
     fn = file.split('/')[-1][:-5]
-    
+
     # extract high shannon/simpson clusters
     mdf = mdf[mdf['sha_sim_cl'] == 1]
-    
+
     # update filename
     fn = fn + '_shasim_high.gpkg'
-    
+
     # add to high list
-    if 'comb2015' in fn:
-        highs.append(mdf)
-    
+    highs.append(mdf)
+
 
 # loop over files again
 for file in files:
-    
+
     # read file
     ldf = gpd.read_file(file)
-    
+
     # get file name
     fn = file.split('/')[-1][:-5]
-    
+
     # extract low clusters
     ldf = ldf[ldf['sha_sim_cl'] == 3]
-    
+
     # update filename
     fn = fn + '_shasim_low.gpkg'
-    
+
     # add to lows list
     lows.append(ldf)
 
-# calculate duplicate geometries    
+# calculate duplicate geometries
 high_df = pd.concat(highs)
 low_df = pd.concat(lows)
 
@@ -83,5 +99,5 @@ histab = pd.merge(high_df, highcounts, left_on='NRO', right_on='index')
 lowstab = pd.merge(low_df, lowcounts, left_on='NRO', right_on='index')
 
 # save stability to geopackage
-histab.to_file('stability_high.gpgk', driver='GPKG')
-lowstab.to_file('stability_low.gpgk', driver='GPKG')
+histab.to_file(args['outputfolder'] + 'stability_high.gpgk', driver='GPKG')
+lowstab.to_file(args['outputfolder'] + 'stability_low.gpgk', driver='GPKG')

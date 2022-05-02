@@ -11,34 +11,54 @@ This script reads the VIF test results and prints out the scores.
 import pandas as pd
 import geopandas as gpd
 import glob
+import argparse
+
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to input folder
+ap.add_argument("-if", "--inputfolder", required=True,
+                help="Path to folder containing pickled model files.")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # path to times of day data
-path = '/home/waeiski/GIS/maphel_thirdplace/ols/vif/'
+path = args['inputfolder']
 
-# get list of times-of-day data
-invif = glob.glob(path + 'initial*.pkl')
-finvif = glob.glob(path + 'final*.pkl')
+# list vif files
+files = glob.glob(path + '*.pkl')
 
-# initial data
-inmo = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/initial_morning_vif.pkl')
-print(inmo)
-inno = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/initial_noon_vif.pkl')
-print(inno)
-inaf = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/initial_afternoon_vif.pkl')
-print(inaf)
-inev = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/initial_evening_vif.pkl')
-print(inev)
-inni = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/initial_night_vif.pkl')
-print(inni)
+# empty lists for initial and final files
+invif = []
+finvif = []
 
-# final data
-fimo = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/final_morning_vif.pkl')
-print(fimo)
-fino = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/final_noon_vif.pkl')
-print(fino)
-fiaf = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/final_afternoon_vif.pkl')
-print(fiaf)
-fiev = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/final_evening_vif.pkl')
-print(fiev)
-fini = pd.read_pickle('/home/waeiski/GIS/maphel_thirdplace/ols/vif/final_night_vif.pkl')
-print(fini)
+# loop over files
+for file in files:
+    # check if initial or final
+    if 'initial' in file:
+        invif.append(file)
+    elif 'final' in file:
+        finvif.append(file)
+
+# loop over initial files
+for file in invif:
+    # get time of day
+    timeofday = file.split('_')[-2]
+    # read file
+    df = pd.read_pickle(file)
+    # print contents
+    print('[INFO] - Now printing initial VIF scores for ' + str(timeofday))
+    print(df)
+
+# loop over final files
+for file in finvif:
+    # get time of day
+    timeofday = file.split('_')[-2]
+    # read file
+    df = pd.read_pickle(file)
+    # print contents
+    print('[INFO] - Now printing final VIF scores for ' + str(timeofday))
+    print(df)
+
+print('[INFO] - ... done!')

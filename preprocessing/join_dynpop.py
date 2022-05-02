@@ -9,12 +9,30 @@ This script joins the dynamic population data to the grid database.
 
 import pandas as pd
 import geopandas as gpd
+import argparse
+
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to input csv file
+ap.add_argument("-c", "--csv", required=True,
+                help="Path to input csv file.")
+
+ap.add_argument("-i", "--input", required=True,
+                help="Path to input dynamic population file (type geojson).")
+
+# Get path to output file
+ap.add_argument("-o", "--output", required=True,
+                help="Path to output file (type geopackage).")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # read dynamic population data in
-df = pd.read_csv('HMA_Dynamic_population_24H_workdays.csv')
+df = pd.read_csv(args['csv'])
 
 # read target grid in
-grid = gpd.read_file('target_zones_grid250m_EPSG3067.geojson')
+grid = gpd.read_file(args['input'])
 
 # summarize pop across times of day
 df['pop_morning'] = df[['H6','H7','H8','H9']].sum(axis=1)
@@ -51,4 +69,4 @@ rtk = gpd.read_file('RTK_data.gpkg')
 final = joined.sjoin(rtk, how="right")
 
 # save to file
-final.to_file('RTK_data.gpkg', driver='GPKG')
+final.to_file(args['output'], driver='GPKG')

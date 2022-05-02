@@ -8,10 +8,29 @@ This script combines Twitter and Instagram data from 2015
 @author: waeiski
 """
 import geopandas as gpd
+import argparse
+
+# Set up the argument parser
+ap = argparse.ArgumentParser()
+
+# Get path to input file
+ap.add_argument("-tw", "--twitter", required=True,
+                help="Path to input twitter file (type geopackage).")
+
+# Get path to input file
+ap.add_argument("-ig", "--instagram", required=True,
+                help="Path to input instagram file (type geopackage).")
+
+# Get path to output file
+ap.add_argument("-of", "--outputfolder", required=True,
+                help="Path to output folder. For example: /path/to/folder/")
+
+# parse arguments
+args = vars(ap.parse_args())
 
 # read social media data in
-twitter = gpd.read_file('/twitter2015_langid.gpkg')
-instagram = gpd.read_file('insta2015_langid_tm35fin.gpkg')
+twitter = gpd.read_file(args['twitter'])
+instagram = gpd.read_file(args['instagram'])
 
 # generic insta locations to drop to reduce post accumulation to single geographical point
 ilocs = ['Helsinki, Finland', 'Espoo, Finland', 'Vantaa, Finland' ,'Helsinki',
@@ -24,7 +43,7 @@ instagram = instagram[~instagram['location_name'].isin(ilocs)]
 twitter = twitter[['id', 'userid', 'time_local', 'hour', 'weekday', 'sents', 'language', 'prob', 'charlen', 'geometry']]
 instagram = instagram[['id', 'userid', 'time_local', 'hour', 'weekday', 'sents', 'language', 'prob', 'charlen', 'geometry']]
 
-# rename 
+# rename
 twitter = twitter.rename(columns={'userid':'userid'})
 
 # save platform info
@@ -75,11 +94,11 @@ print('Night posts: ' + str(len(night['id'].value_counts())))
 print('Night users: ' + str(len(night['userid'].value_counts())))
 
 # save to dataframe
-morning.to_pickle('/home/waeiski/GIS/maphel_thirdplace/some_combined/combined/comb2015_morning.pkl')
-noon.to_pickle('/home/waeiski/GIS/maphel_thirdplace/some_combined/combined/comb2015_noon.pkl')
-afternoon.to_pickle('/home/waeiski/GIS/maphel_thirdplace/some_combined/combined/comb2015_afternoon.pkl')
-evening.to_pickle('/home/waeiski/GIS/maphel_thirdplace/some_combined/combined/comb2015_evening.pkl')
-night.to_pickle('/home/waeiski/GIS/maphel_thirdplace/some_combined/combined/comb2015_night.pkl')
+morning.to_pickle(args['outputfolder'] + 'comb2015_morning.pkl')
+noon.to_pickle(args['outputfolder'] + 'comb2015_noon.pkl')
+afternoon.to_pickle(args['outputfolder'] + 'comb2015_afternoon.pkl')
+evening.to_pickle(args['outputfolder'] + 'comb2015_evening.pkl')
+night.to_pickle(args['outputfolder'] + 'comb2015_night.pkl')
 
 # save to geopackage
-joined.to_file('/home/waeiski/GIS/maphel_thirdplace/some_combined/combined/twinsta_2015_langid.gpkg', driver='GPKG')
+joined.to_file(args['outputfolder'] + 'twinsta_2015_combined.gpkg', driver='GPKG')
