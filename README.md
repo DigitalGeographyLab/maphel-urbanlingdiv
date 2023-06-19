@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/478456945.svg)](https://zenodo.org/badge/latestdoi/478456945)
+
 This repository contains the scripts used in the article "Mapping urban linguistic diversity with social media and population register data" published in [Computers, Environment and Urban Systems](https://doi.org/10.1016/j.compenvurbsys.2022.101857).
 
 ### Data requirements
